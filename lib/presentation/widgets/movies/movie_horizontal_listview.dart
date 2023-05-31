@@ -2,6 +2,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cinemapedia/config/helpers/human_formats.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class MovieHorizontalListview extends StatefulWidget {
   final List<Movie> movies;
@@ -58,7 +59,11 @@ class _MovieHorizontalListviewState extends State<MovieHorizontalListview> {
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               itemBuilder: (context, index) {
-                return FadeInRight(child: _Slide(movie: widget.movies[index]));
+                return FadeInRight(
+                    child: _Slide(
+                  movie: widget.movies[index],
+                  category: widget.title!,
+                ));
               },
             ),
           ),
@@ -97,8 +102,9 @@ class _Header extends StatelessWidget {
 
 class _Slide extends StatelessWidget {
   final Movie movie;
+  final String category;
 
-  const _Slide({required this.movie});
+  const _Slide({required this.movie, required this.category});
 
   @override
   Widget build(BuildContext context) {
@@ -111,23 +117,29 @@ class _Slide extends StatelessWidget {
           // IMAGEN
           SizedBox(
             width: 150,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Image.network(
-                movie.posterPath,
-                fit: BoxFit.cover,
-                width: 150,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress != null) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
+            child: Hero(
+              tag: 'MoviePoster${movie.id} $category',
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.network(
+                  movie.posterPath,
+                  fit: BoxFit.cover,
+                  width: 150,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress != null) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      );
+                    }
+                    return GestureDetector(
+                      onTap: () => context.push('/movie/${movie.id}&$category'),
+                      child: FadeIn(child: child),
                     );
-                  }
-                  return FadeIn(child: child);
-                },
+                  },
+                ),
               ),
             ),
           ),

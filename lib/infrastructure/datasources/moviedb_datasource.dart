@@ -1,7 +1,10 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'package:cinemapedia/config/constants/environment.dart';
 import 'package:cinemapedia/domain/datasurces/movies_datasource.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:cinemapedia/infrastructure/mappers/movie_mapper.dart';
+import 'package:cinemapedia/infrastructure/models/moviedb/movie_details.dart';
 import 'package:cinemapedia/infrastructure/models/moviedb/moviedb_response.dart';
 import 'package:dio/dio.dart';
 
@@ -52,5 +55,17 @@ class MoviedbDataSource implements MovieDataSource {
         await dio.get('/movie/upcoming', queryParameters: {'page': page});
 
     return _jsonToMovies(response.data);
+  }
+
+  @override
+  Future<Movie> getMovieById(String id) async {
+    print(id);
+    final response = await dio.get('/movie/$id');
+    if (response.statusCode != 200)
+      throw Exception('Movie with id: $id not found');
+
+    final movieDetails = MovieDetails.fromJson(response.data);
+
+    return MovieMapper.movieDetailsToEntity(movieDetails);
   }
 }
