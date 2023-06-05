@@ -27,7 +27,6 @@ class CustomAppBar extends ConsumerWidget {
               const Spacer(),
               IconButton(
                 onPressed: () {
-                  //TODO:
 
                   final searchedMovies = ref.read(searchedMoviesProvider);
                   final searchQuery = ref.read(searchQueryProvider);
@@ -43,7 +42,7 @@ class CustomAppBar extends ConsumerWidget {
                     ),
                   ).then((movie) {
                     if (movie == null) return;
-                    context.push('/movie/${movie.id}&Search');
+                    context.push('/home/0/movie/${movie.id}&Search');
                   });
                 },
                 icon: const Icon(Icons.search),
