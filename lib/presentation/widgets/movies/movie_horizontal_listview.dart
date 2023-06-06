@@ -117,29 +117,31 @@ class _Slide extends StatelessWidget {
           // IMAGEN
           SizedBox(
             width: 150,
-            child: Hero(
-              tag: 'MoviePoster${movie.id} $category',
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  movie.posterPath,
-                  fit: BoxFit.cover,
-                  width: 150,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress != null) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      );
-                    }
-                    return GestureDetector(
-                      onTap: () => context.push('/movie/${movie.id}&$category'),
-                      child: FadeIn(child: child),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.network(
+                movie.posterPath,
+                fit: BoxFit.cover,
+                width: 150,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress != null) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     );
-                  },
-                ),
+                  }
+                  return GestureDetector(
+                    onTap: () => context.push('/movie/${movie.id}&$category'),
+                    child: FadeIn(
+                      child: Hero(
+                        tag: 'MoviePoster${movie.id} $category',
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

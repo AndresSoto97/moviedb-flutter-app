@@ -1,15 +1,24 @@
 import 'package:cinemapedia/presentation/screens/screens.dart';
+import 'package:cinemapedia/presentation/views/home_views/category_view.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../presentation/views/views.dart';
 
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final appRouter = GoRouter(
   initialLocation: '/',
+  navigatorKey: _rootNavigatorKey,
   routes: [
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) => HomeScreen(
-        childView: navigationShell,
-      ),
+    StatefulShellRoute(
+      builder: (context, state, navigationShell) => navigationShell,
+      navigatorContainerBuilder: (context, navigationShell, children) {
+        return HomeScreen(
+          childView: navigationShell,
+          children: children,
+        );
+      },
       branches: <StatefulShellBranch>[
         StatefulShellBranch(
           routes: [
@@ -22,6 +31,7 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'movie/:id&:category',
                   name: MovieScreen.name,
+                  parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) {
                     final movieId = state.pathParameters['id'] ?? 'no-id';
                     final category = state.pathParameters['category'];
@@ -35,9 +45,9 @@ final appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/favorites',
+              path: '/categories',
               builder: (context, state) {
-                return const FavoritesView();
+                return const CategoryView();
               },
             ),
           ],
@@ -54,7 +64,7 @@ final appRouter = GoRouter(
         ),
       ],
     ),
-    
+
     /* ShellRoute(
       builder: (context, state, child) {
         return HomeScreen(childView: child);
