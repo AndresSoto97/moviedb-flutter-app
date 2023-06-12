@@ -47,4 +47,9 @@ class MovieRepositoryImpl implements MovieRepository {
   Future<List<Movie>> getSimilar(String id) {
     return dataSource.getSimilar(id);
   }
+
+  @override
+  Future<List<Movie>> getTrendingMovies() {
+    return dataSource.getTrendingMovies();
+  }
 }

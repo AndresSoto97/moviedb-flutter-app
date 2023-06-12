@@ -102,4 +102,12 @@ class MoviedbDataSource implements MovieDataSource {
       throw Exception('Similar from movie with id: $id not found');
     return _jsonToMovies(response.data);
   }
+
+  @override
+  Future<List<Movie>> getTrendingMovies() async {
+    final response = await dio.get('/trending/movie/day');
+    if (response.statusCode != 200)
+      throw Exception('Trending movies not found');
+    return _jsonToMovies(response.data);
+  }
 }
