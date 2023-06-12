@@ -1,7 +1,11 @@
+import 'package:cinemapedia/config/helpers/human_formats.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:cinemapedia/presentation/providers/providers.dart';
+import 'package:cinemapedia/presentation/widgets/movies/movie_trailer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../widgets/widgets.dart';
 
 class MovieScreen extends ConsumerStatefulWidget {
   final String movieId;
@@ -21,6 +25,7 @@ class MovieScreenState extends ConsumerState<MovieScreen> {
     super.initState();
     ref.read(movieInfoProvider.notifier).loadMovie(widget.movieId);
     ref.read(actorsByMovieProvider.notifier).loadActors(widget.movieId);
+    ref.read(moviesVideosProvider.notifier).loadVideos(widget.movieId);
   }
 
   @override
@@ -61,64 +66,69 @@ class _MovieDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final styles = Theme.of(context).textTheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  movie.posterPath,
-                  width: size.width * 0.3,
-                ),
-              ),
-              const SizedBox(width: 10),
-              // Descripcion
-              SizedBox(
-                width: (size.width - 40) * 0.7,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Descripcion
+          SizedBox(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(movie.title, style: styles.titleLarge),
-                    Text(movie.overview),
+                    Expanded(
+                      child: Text(
+                        movie.title,
+                        style: styles.headlineSmall!
+                            .copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    _CustomChip(
+                      label: HumanFormats.number(movie.voteAverage, 1),
+                      avatar: const Icon(
+                        Icons.star_half_rounded,
+                        color: Colors.amber,
+                      ),
+                    )
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                Text(movie.overview),
+              ],
+            ),
           ),
-        ),
-
-        // Generos de la pelicula
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: Wrap(
+          const SizedBox(height: 10),
+          Wrap(
             children: [
-              ...movie.genreIds.map(
-                (genre) => Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  child: Chip(
-                    label: Text(genre),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+              ...movie.genreIds
+                  .map(
+                    (genre) => Container(
+                      margin: const EdgeInsets.only(right: 10),
+                      child: _CustomChip(label: genre),
                     ),
-                  ),
-                ),
-              )
+                  )
+                  .take(3),
             ],
           ),
-        ),
+          const SizedBox(height: 10),
 
-        _ActorsByMovie(movieId: movie.id.toString()),
+          _ActorsByMovie(movieId: movie.id.toString()),
+          const SizedBox(height: 10),
 
-        const SizedBox(height: 50),
-      ],
+          // Trailer
+          MovieTrailer(movieId: movie.id.toString()),
+          const SizedBox(height: 10),
+
+          // Recomendaciones
+          SimilarMovies(movieId: movie.id.toString()),
+          const SizedBox(height: 50),
+        ],
+      ),
     );
   }
 }
@@ -131,6 +141,7 @@ class _ActorsByMovie extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actorsByMovie = ref.watch(actorsByMovieProvider);
+    final styles = Theme.of(context).textTheme;
 
     if (actorsByMovie[movieId] == null) {
       return const CircularProgressIndicator(strokeWidth: 2);
@@ -140,39 +151,46 @@ class _ActorsByMovie extends ConsumerWidget {
 
     return SizedBox(
       height: 300,
-      child: ListView.builder(
-        itemCount: actors.length,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          final actor = actors[index];
-          return Container(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Actor Photo
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.network(
-                    actor.profilePath,
-                    height: 180,
-                    width: 135,
-                    fit: BoxFit.cover,
+      child: ListTile(
+        title: Text(
+          'Cast',
+          style: styles.headlineMedium!.copyWith(fontWeight: FontWeight.bold),
+        ),
+        contentPadding: EdgeInsets.zero,
+        subtitle: ListView.builder(
+          itemCount: actors.length,
+          scrollDirection: Axis.horizontal,
+          itemBuilder: (context, index) {
+            final actor = actors[index];
+            return Container(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Actor Photo
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.network(
+                      actor.profilePath,
+                      height: 180,
+                      width: 135,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 5),
-                // Nombre
-                Text(actor.name, maxLines: 2),
-                Text(
-                  actor.character ?? '',
-                  maxLines: 2,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          );
-        },
+                  const SizedBox(height: 5),
+                  // Nombre
+                  Text(actor.name, maxLines: 2),
+                  Text(
+                    actor.character ?? '',
+                    maxLines: 2,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -248,6 +266,27 @@ class _CustomSliverAppBar extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CustomChip extends StatelessWidget {
+  const _CustomChip({required this.label, this.avatar});
+
+  final String label;
+  final Widget? avatar;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Chip(
+      backgroundColor: colors.onInverseSurface,
+      avatar: avatar,
+      side: BorderSide.none,
+      label: Text(label),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
       ),
     );
   }

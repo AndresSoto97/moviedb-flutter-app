@@ -1,5 +1,4 @@
 import 'package:cinemapedia/presentation/screens/screens.dart';
-import 'package:cinemapedia/presentation/views/home_views/category_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -45,9 +44,9 @@ final appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/categories',
+              path: '/trending',
               builder: (context, state) {
-                return const CategoryView();
+                return const TrendingView();
               },
             ),
           ],

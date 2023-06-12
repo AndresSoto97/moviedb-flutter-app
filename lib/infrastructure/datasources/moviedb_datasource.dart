@@ -3,9 +3,11 @@
 import 'package:cinemapedia/config/constants/environment.dart';
 import 'package:cinemapedia/domain/datasurces/movies_datasource.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
+import 'package:cinemapedia/domain/entities/video.dart';
 import 'package:cinemapedia/infrastructure/mappers/movie_mapper.dart';
 import 'package:cinemapedia/infrastructure/models/moviedb/movie_details.dart';
 import 'package:cinemapedia/infrastructure/models/moviedb/moviedb_response.dart';
+import 'package:cinemapedia/infrastructure/models/moviedb/moviedb_videos.dart';
 import 'package:dio/dio.dart';
 
 class MoviedbDataSource implements MovieDataSource {
@@ -74,6 +76,30 @@ class MoviedbDataSource implements MovieDataSource {
     final response = await dio.get('/search/movie', queryParameters: {
       'query': query,
     });
+    return _jsonToMovies(response.data);
+  }
+
+  @override
+  Future<List<Video>> getVideosByMovieId(String id) async {
+    List<Video> videos = [];
+    final response = await dio.get('/movie/$id/videos');
+    if (response.statusCode != 200)
+      throw Exception('Videos from movie with id: $id not found');
+    final movieVideosResponse = MoviedbVideos.fromJson(response.data);
+    final trailers =
+        movieVideosResponse.results.where((e) => e.type == 'Trailer').toList();
+    for (var trailer in trailers) {
+      final video = MovieMapper.movieDBVideoToEntity(trailer);
+      videos.add(video);
+    }
+    return videos;
+  }
+
+  @override
+  Future<List<Movie>> getSimilar(String id) async {
+    final response = await dio.get('/movie/$id/similar');
+    if (response.statusCode != 200)
+      throw Exception('Similar from movie with id: $id not found');
     return _jsonToMovies(response.data);
   }
 }
